@@ -1,4 +1,4 @@
-//! herdr-hop: Vimium-style hint jump for Herdr.
+//! herdr-easyjump: Vimium-style hint jump for Herdr.
 //!
 //! Two modes, both drawn inside Herdr's own terminal popup so the outer
 //! terminal never loses focus:
@@ -11,14 +11,14 @@
 //!   list               One big popup with a pane mini-map and full lists.
 //!
 //! Usage:
-//!   herdr-hop                 sidebar-mode HUD (manifest pane "hop")
-//!   herdr-hop --list          list-mode popup (manifest pane "list")
-//!   herdr-hop --open          open the sidebar-mode popup, sized to fit
-//!   herdr-hop --open-list     open the list-mode popup
-//!   herdr-hop --back          jump back to the pane focused before the last hop
-//!   herdr-hop --clear         clear every hint token (detached cleanup helper)
-//!   herdr-hop --dump [--sidebar]   render one frame to stdout (debugging)
-//!   herdr-hop --probe         write the popup size to the state dir (debugging)
+//!   herdr-easyjump                 sidebar-mode HUD (manifest pane "jump")
+//!   herdr-easyjump --list          list-mode popup (manifest pane "list")
+//!   herdr-easyjump --open          open the sidebar-mode popup, sized to fit
+//!   herdr-easyjump --open-list     open the list-mode popup
+//!   herdr-easyjump --back          jump back to the pane focused before the last hop
+//!   herdr-easyjump --clear         clear every hint token (detached cleanup helper)
+//!   herdr-easyjump --dump [--sidebar]   render one frame to stdout (debugging)
+//!   herdr-easyjump --probe         write the popup size to the state dir (debugging)
 
 mod model;
 mod render;
@@ -37,7 +37,7 @@ fn plugin_id() -> String {
     std::env::var("HERDR_PLUGIN_ID")
         .ok()
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "zed.hop".into())
+        .unwrap_or_else(|| "xzedx.easyjump".into())
 }
 
 fn load_model(client: &mut Client, mode: Mode) -> Result<Model, String> {
@@ -125,7 +125,7 @@ fn interact(model: &Model, client: &mut Client, mode: Mode) -> Outcome {
     }
 }
 
-/// Start `herdr-hop --clear` in its own process group so it survives us.
+/// Start `herdr-easyjump --clear` in its own process group so it survives us.
 fn spawn_clear_helper() {
     use std::os::unix::process::CommandExt;
     if let Ok(exe) = std::env::current_exe() {
@@ -194,7 +194,7 @@ fn open_popup(mode: Mode) -> Result<(), String> {
                 .max()
                 .unwrap_or(40)
                 + 4;
-            params["entrypoint"] = json!("hop");
+            params["entrypoint"] = json!("jump");
             params["width"] = json!(width.min(120));
             params["height"] = json!(lines.len() + 2);
         }
@@ -232,7 +232,7 @@ fn dump(args: &[String]) -> Result<(), String> {
             .and_then(|v| v.parse().ok())
             .unwrap_or(d)
     };
-    let typed = std::env::var("HOP_TYPED").unwrap_or_default();
+    let typed = std::env::var("EASYJUMP_TYPED").unwrap_or_default();
     let lines = match mode {
         Mode::Sidebar => render::hud_lines(&model, &typed),
         Mode::List => {
@@ -253,7 +253,7 @@ fn dump(args: &[String]) -> Result<(), String> {
 fn main() {
     trace("main:start");
     let mut args: Vec<String> = std::env::args().skip(1).collect();
-    if let Ok(extra) = std::env::var("HOP_ARGS") {
+    if let Ok(extra) = std::env::var("EASYJUMP_ARGS") {
         args.extend(extra.split_whitespace().map(String::from));
     }
     let has = |flag: &str| args.iter().any(|a| a == flag);
@@ -286,7 +286,7 @@ fn main() {
 
     if let Err(e) = result {
         term::leave_alt_screen();
-        eprintln!("hop: {e}");
+        eprintln!("easyjump: {e}");
         std::process::exit(1);
     }
 }

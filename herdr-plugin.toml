@@ -1,5 +1,5 @@
-id = "zed.hop"
-name = "Hop"
+id = "xzedx.easyjump"
+name = "EasyJump"
 version = "0.4.0"
 min_herdr_version = "0.8.2"
 description = "Vimium-style hint labels, shown right in the Herdr sidebar, to jump to any space, agent, pane, or tab. No extra window, never steals terminal focus."
@@ -13,35 +13,35 @@ command = ["cargo", "build", "--release"]
 # popup, so nothing runs before the popup process itself.
 [[actions]]
 id = "open"
-title = "Hop: hint jump (sidebar)"
+title = "EasyJump: hint jump (sidebar)"
 contexts = ["workspace", "global"]
-command = ["sh", "-c", "exec \"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plugin \"${HERDR_PLUGIN_ID:-zed.hop}\" --entrypoint hop"]
+command = ["sh", "-c", "exec \"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plugin \"${HERDR_PLUGIN_ID:-xzedx.easyjump}\" --entrypoint jump"]
 
 # List mode: one big popup with a pane mini-map and full tab/agent lists.
 [[actions]]
 id = "open-list"
-title = "Hop: hint jump (list popup)"
+title = "EasyJump: hint jump (list popup)"
 contexts = ["workspace", "global"]
-command = ["sh", "-c", "exec \"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plugin \"${HERDR_PLUGIN_ID:-zed.hop}\" --entrypoint list"]
+command = ["sh", "-c", "exec \"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plugin \"${HERDR_PLUGIN_ID:-xzedx.easyjump}\" --entrypoint list"]
 
 [[actions]]
 id = "back"
-title = "Hop: jump back to previous pane"
+title = "EasyJump: jump back to previous pane"
 contexts = ["workspace", "global"]
-command = ["./target/release/herdr-hop", "--back"]
+command = ["./target/release/herdr-easyjump", "--back"]
 
 [[panes]]
-id = "hop"
-title = "Hop"
+id = "jump"
+title = "EasyJump"
 placement = "popup"
 width = 64
 height = 5
-command = ["./target/release/herdr-hop"]
+command = ["./target/release/herdr-easyjump"]
 
 [[panes]]
 id = "list"
-title = "Hop list"
+title = "EasyJump list"
 placement = "popup"
 width = "80%"
 height = "70%"
-command = ["./target/release/herdr-hop", "--list"]
+command = ["./target/release/herdr-easyjump", "--list"]

@@ -34,7 +34,7 @@ impl Client {
         let stream = UnixStream::connect(&self.path).map_err(|e| format!("connect: {e}"))?;
         let mut writer = stream.try_clone().map_err(|e| e.to_string())?;
         let mut reader = BufReader::new(stream);
-        let req = json!({"id": "hop", "method": method, "params": params});
+        let req = json!({"id": "easyjump", "method": method, "params": params});
         let mut line = serde_json::to_string(&req).map_err(|e| e.to_string())?;
         line.push('\n');
         writer

@@ -10,7 +10,7 @@ pub fn state_dir() -> PathBuf {
         .map(PathBuf::from)
         .unwrap_or_else(|| {
             let home = std::env::var("HOME").unwrap_or_default();
-            PathBuf::from(home).join(".local/state/herdr/plugins/zed.hop")
+            PathBuf::from(home).join(".local/state/herdr/plugins/xzedx.easyjump")
         });
     let _ = std::fs::create_dir_all(&dir);
     dir
@@ -29,9 +29,9 @@ pub fn read_previous() -> Option<String> {
     v.get("pane_id").and_then(|p| p.as_str()).map(String::from)
 }
 
-/// HOP_TRACE=<file> appends "<label> <epoch seconds>" lines.
+/// EASYJUMP_TRACE=<file> appends "<label> <epoch seconds>" lines.
 pub fn trace(label: &str) {
-    if let Ok(path) = std::env::var("HOP_TRACE") {
+    if let Ok(path) = std::env::var("EASYJUMP_TRACE") {
         if path.is_empty() {
             return;
         }

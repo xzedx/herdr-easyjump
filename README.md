@@ -1,4 +1,4 @@
-# herdr-hop
+# herdr-easyjump
 
 Vimium-style hint jump for [Herdr](https://herdr.dev).
 
@@ -15,7 +15,7 @@ is a Herdr terminal popup. There is no separate window, so the outer terminal
 ```
  sidebar                          │  HUD popup (centered over the panes)
  ─────────────────────────────    │  ┌──────────────────────────────────────────┐
- ● [a] herdr                      │  │ hop  hints are in the sidebar · ` back   │
+ ● [a] herdr                      │  │ easyjump  hints in the sidebar · ` back  │
    ● [s] herdr 1                  │  │ panes [y] ● claude  [u] shell            │
      claude                       │  │ tabs  [i] 1  [o] 2                       │
  ○ [d] liberbot                   │  └──────────────────────────────────────────┘
@@ -42,28 +42,28 @@ beyond that. The alphabet is home-row first (`asdfghjkl`, `wertyuiop`,
 ## Install
 
 ```bash
-herdr plugin install <owner>/herdr-hop
+herdr plugin install <owner>/herdr-easyjump
 ```
 
 or, for a local checkout:
 
 ```bash
 cargo build --release
-herdr plugin link /path/to/herdr-hop
+herdr plugin link /path/to/herdr-easyjump
 ```
 
 ### Config
 
 Two things in `~/.config/herdr/config.toml`: a key binding, and the `$hint`
 token in the sidebar rows so Herdr has somewhere to draw the labels. The
-token is empty whenever hop is not running, and empty tokens take no space.
+token is empty whenever easyjump is not running, and empty tokens take no space.
 
 ```toml
 [[keys.command]]
 key = "prefix+f"
 type = "plugin_action"
-command = "zed.hop.open"
-description = "hop: hint jump"
+command = "xzedx.easyjump.open"
+description = "easyjump: hint jump"
 
 # Faster alternative to the binding above (about 20 ms to first frame instead
 # of about 150 ms): let Herdr open the popup directly. Use the absolute path
@@ -71,24 +71,24 @@ description = "hop: hint jump"
 # [[keys.command]]
 # key = "prefix+f"
 # type = "popup"
-# command = "/path/to/herdr-hop/target/release/herdr-hop"
+# command = "/path/to/herdr-easyjump/target/release/herdr-easyjump"
 # width = 64
 # height = 5
-# description = "hop: hint jump"
+# description = "easyjump: hint jump"
 
 # optional: jump back to where you were before the last hop
 [[keys.command]]
 key = "prefix+shift+f"
 type = "plugin_action"
-command = "zed.hop.back"
-description = "hop: jump back"
+command = "xzedx.easyjump.back"
+description = "easyjump: jump back"
 
 # optional: the older all-in-one list popup with a pane mini-map
 [[keys.command]]
 key = "prefix+alt+f"
 type = "plugin_action"
-command = "zed.hop.open-list"
-description = "hop: list popup"
+command = "xzedx.easyjump.open-list"
+description = "easyjump: list popup"
 
 # These are Herdr's default rows plus the $hint token. If you already
 # customise rows, just add the token entry wherever you want the label.
@@ -120,7 +120,7 @@ Press `prefix+f`.
 
 ## How it works
 
-1. The `open` action asks Herdr to open the `hop` popup (a fixed 64x5 cells);
+1. The `open` action asks Herdr to open the `jump` popup (a fixed 64x5 cells);
    nothing else runs before the popup process itself.
 2. The popup process reads the session snapshot over the Herdr socket,
    assigns labels in sidebar order, and publishes the labels as `hint` metadata tokens
@@ -136,10 +136,10 @@ Press `prefix+f`.
 ```bash
 cargo build --release
 herdr plugin link "$PWD"
-./target/release/herdr-hop --dump --sidebar               # HUD text + label map
-COLUMNS=140 LINES=30 ./target/release/herdr-hop --dump    # list-mode frame
-herdr plugin action invoke zed.hop.open
-HOP_TRACE=/tmp/hop-trace.txt ./target/release/herdr-hop  # per-stage timestamps
+./target/release/herdr-easyjump --dump --sidebar               # HUD text + label map
+COLUMNS=140 LINES=30 ./target/release/herdr-easyjump --dump    # list-mode frame
+herdr plugin action invoke xzedx.easyjump.open
+EASYJUMP_TRACE=/tmp/easyjump-trace.txt ./target/release/herdr-easyjump  # per-stage timestamps
 ```
 
 Latency on an M-series Mac, measured from the `plugin.pane.open` request:

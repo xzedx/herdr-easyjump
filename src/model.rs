@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 /// Home-row first. "q" is deliberately absent so it can quit the popup.
 pub const ALPHABET: &str = "asdfghjklwertyuiopzxcvbnm";
 pub const TOKEN: &str = "hint"; // sidebar rows render this as $hint
-pub const SOURCE: &str = "zed.hop";
+pub const SOURCE: &str = "xzedx.easyjump";
 pub const TOKEN_TTL_MS: u64 = 15_000; // backstop: labels vanish on their own if we die
 pub const REFRESH_MS: i32 = 5_000; // re-publish while open so the TTL never expires under us
 
