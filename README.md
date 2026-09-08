@@ -33,7 +33,7 @@ quitting, so they never appear in a label.
 ## Install
 
 ```bash
-herdr plugin install <owner>/herdr-easyjump
+herdr plugin install xzedx/herdr-easyjump
 ```
 
 or, for a local checkout:
