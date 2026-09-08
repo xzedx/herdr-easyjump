@@ -5,8 +5,9 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 
-/// Home-row first. "q" is deliberately absent so it can quit the popup.
-pub const ALPHABET: &str = "asdfghjklwertyuiopzxcvbnm";
+/// Home-row first. "h", "j", "k", "l" are reserved for relative movement and
+/// "q" for quitting, so they never appear in a label.
+pub const ALPHABET: &str = "asdfgwertyuiopzxcvbnm";
 pub const TOKEN: &str = "hint"; // sidebar rows render this as $hint
 pub const SOURCE: &str = "xzedx.easyjump";
 pub const TOKEN_TTL_MS: u64 = 15_000; // backstop: labels vanish on their own if we die
@@ -337,6 +338,21 @@ impl Model {
         }
     }
 
+    /// Workspace before/after the current one in sidebar order, wrapping.
+    pub fn neighbour_workspace(&self, step: i64) -> Option<String> {
+        let n = self.ws_rows.len() as i64;
+        if n == 0 {
+            return None;
+        }
+        let i = self
+            .ws_rows
+            .iter()
+            .position(|(w, _)| Some(&w.workspace_id) == self.current_ws.as_ref())
+            .unwrap_or(0) as i64;
+        let j = (i + step).rem_euclid(n) as usize;
+        Some(self.ws_rows[j].0.workspace_id.clone())
+    }
+
     pub fn label(&self, kind: Kind, id: &str) -> &str {
         self.label_index
             .get(&(kind, id.to_string()))
@@ -360,7 +376,6 @@ impl Model {
     }
 
     pub fn jump(&self, client: &mut Client, dest: &Dest) -> Result<(), String> {
-        crate::state::remember_previous(self.focused_pane.as_deref());
         let (method, key) = match dest.0 {
             Kind::Pane => ("pane.focus", "pane_id"),
             Kind::Tab => ("tab.focus", "tab_id"),

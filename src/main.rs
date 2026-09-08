@@ -40,10 +40,21 @@ fn plugin_id() -> String {
         .unwrap_or_else(|| "xzedx.easyjump".into())
 }
 
-fn load_model(client: &mut Client, mode: Mode) -> Result<Model, String> {
+fn load_model(client: &mut Client, mode: Mode, ctx: Context) -> Result<Model, String> {
     let snap: Snapshot =
         serde_json::from_value(client.snapshot()?).map_err(|e| format!("snapshot: {e}"))?;
-    Ok(Model::new(snap, Context::from_env(), mode))
+    Ok(Model::new(snap, ctx, mode))
+}
+
+/// After a relative move: re-read the session so the HUD and labels follow
+/// the new focus, and refresh the sidebar tokens.
+fn reload(model: &mut Model, client: &mut Client, mode: Mode, typed: &str) {
+    if let Ok(m) = load_model(client, mode, Context::default()) {
+        *model = m;
+    }
+    if mode == Mode::Sidebar {
+        model.publish_hints(client, typed);
+    }
 }
 
 enum Outcome {
@@ -53,7 +64,7 @@ enum Outcome {
 }
 
 /// The interactive loop. Returns what to do; the caller handles cleanup.
-fn interact(model: &Model, client: &mut Client, mode: Mode) -> Outcome {
+fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
     let sidebar = mode == Mode::Sidebar;
     let mut typed = String::new();
     if sidebar {
@@ -100,6 +111,24 @@ fn interact(model: &Model, client: &mut Client, mode: Mode) -> Outcome {
                 }
             }
             Key::Char('`') | Key::Char('\'') => return Outcome::Back,
+            // Relative movement, Vim style: panes with hjkl, spaces with J/K.
+            Key::Char(c @ ('h' | 'j' | 'k' | 'l')) => {
+                let dir = match c {
+                    'h' => "left",
+                    'j' => "down",
+                    'k' => "up",
+                    _ => "right",
+                };
+                let _ = client.call("pane.focus_direction", json!({ "direction": dir }));
+                reload(model, client, mode, &typed);
+            }
+            Key::Char(c @ ('J' | 'K')) => {
+                let step = if c == 'J' { 1 } else { -1 };
+                if let Some(ws) = model.neighbour_workspace(step) {
+                    let _ = client.call("workspace.focus", json!({ "workspace_id": ws }));
+                    reload(model, client, mode, &typed);
+                }
+            }
             Key::Enter => {
                 let matches = model.labels_with_prefix(&typed);
                 if matches.len() == 1 {
@@ -150,13 +179,14 @@ fn clear_tokens() -> Result<(), String> {
 fn run_popup(mode: Mode) -> Result<(), String> {
     trace("popup:start");
     let mut client = Client::connect()?;
-    let model = load_model(&mut client, mode)?;
+    let mut model = load_model(&mut client, mode, Context::from_env())?;
+    let origin = model.focused_pane.clone();
     trace("popup:model");
     term::install_signal_handlers();
     let raw = term::RawMode::enable();
     term::enter_alt_screen();
 
-    let outcome = interact(&model, &mut client, mode);
+    let outcome = interact(&mut model, &mut client, mode);
     trace("popup:quit");
 
     if mode == Mode::Sidebar {
@@ -166,16 +196,24 @@ fn run_popup(mode: Mode) -> Result<(), String> {
     drop(raw);
     term::leave_alt_screen();
 
+    // "Previous" always means where we were when the popup opened, even
+    // after a chain of relative moves. A jump-back must not overwrite it.
+    let remember = match &outcome {
+        Outcome::Jump(_) => true,
+        Outcome::Back => false,
+        Outcome::Quit => model.focused_pane != origin,
+    };
+    if remember {
+        state::remember_previous(origin.as_deref());
+    }
     match outcome {
         Outcome::Jump(dest) => model.jump(&mut client, &dest),
-        Outcome::Back => {
-            if let Some(prev) = state::read_previous() {
-                if model.panes.contains_key(&prev) {
-                    return model.jump(&mut client, &(Kind::Pane, prev));
-                }
+        Outcome::Back => match state::read_previous() {
+            Some(prev) if model.panes.contains_key(&prev) => {
+                model.jump(&mut client, &(Kind::Pane, prev))
             }
-            Ok(())
-        }
+            _ => Ok(()),
+        },
         Outcome::Quit => Ok(()),
     }
 }
@@ -186,7 +224,7 @@ fn open_popup(mode: Mode) -> Result<(), String> {
     let mut params = json!({ "plugin_id": plugin_id(), "placement": "popup" });
     match mode {
         Mode::Sidebar => {
-            let model = load_model(&mut client, Mode::Sidebar)?;
+            let model = load_model(&mut client, Mode::Sidebar, Context::from_env())?;
             let lines = render::hud_lines(&model, "");
             let width = lines
                 .iter()
@@ -225,7 +263,7 @@ fn dump(args: &[String]) -> Result<(), String> {
         Mode::List
     };
     let mut client = Client::connect()?;
-    let model = load_model(&mut client, mode)?;
+    let model = load_model(&mut client, mode, Context::from_env())?;
     let env = |k: &str, d: usize| {
         std::env::var(k)
             .ok()

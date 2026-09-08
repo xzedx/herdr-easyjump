@@ -16,9 +16,10 @@ is a Herdr terminal popup. There is no separate window, so the outer terminal
 
 ![herdr-easyjump: yellow hint labels next to every space and agent row in the Herdr sidebar, plus a small HUD popup](docs/screenshot.png)
 
-Labels are single letters while there are 25 or fewer targets, two letters
-beyond that. The alphabet is home-row first (`asdfghjkl`, `wertyuiop`,
-`zxcvbnm`); `q` is reserved for quitting.
+Labels are single letters while there are 21 or fewer targets, two letters
+beyond that. The alphabet is home-row first (`asdfg`, `wertyuiop`,
+`zxcvbnm`). `h` `j` `k` `l` are reserved for relative movement and `q` for
+quitting, so they never appear in a label.
 
 ## Requirements
 
@@ -104,9 +105,14 @@ Press `prefix+f`.
   tabs of the current workspace (when there is more than one).
 - With two-letter labels, typing the first letter hides every label that no
   longer matches, in the sidebar and in the HUD.
-- `` ` `` (backtick) jumps back to the pane focused before the last hop.
+- `h` `j` `k` `l` move focus to the neighbouring pane, `J` / `K` switch to
+  the next / previous space, all without closing the popup. Labels and the
+  HUD follow the new focus, so you can mix relative moves and label jumps.
+- `` ` `` (backtick) jumps back to where you were when the popup opened,
+  even after a chain of relative moves.
 - `Backspace` clears the typed prefix, `Enter` accepts a unique prefix.
-- `q`, `Esc`, or `Ctrl-C` closes without jumping.
+- `q`, `Esc`, or `Ctrl-C` closes; if relative moves changed the focus, the
+  origin is remembered for the next jump back.
 
 ## How it works
 
