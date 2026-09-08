@@ -1,6 +1,8 @@
 # herdr-easyjump
 
-Vimium-style hint jump for [Herdr](https://herdr.dev).
+Hint-label jumping for [Herdr](https://herdr.dev), in the spirit of
+EasyMotion / hop.nvim / Vimium / vim-choosewin: press a key, type a letter,
+land on any space, agent, pane, or tab.
 
 Press one key and every space and agent row **in the sidebar itself** gets a
 yellow label. Type the label and you are there. Panes of the current tab and

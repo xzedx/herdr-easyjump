@@ -2,7 +2,7 @@
 name = "herdr-easyjump"
 version = "0.4.0"
 edition = "2021"
-description = "Vimium-style hint labels in the Herdr sidebar to jump to any space, agent, pane, or tab"
+description = "Press a key, type a letter, jump to any space, agent, pane, or tab. EasyMotion / Vimium / vim-choosewin style hint labels, drawn right in the Herdr sidebar."
 license = "MIT"
 
 [dependencies]
