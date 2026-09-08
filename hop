@@ -1,0 +1,16 @@
+#!/bin/sh
+# Launcher for hop.py that avoids version-manager shims (pyenv/asdf/mise add
+# ~100 ms per start). Override with HOP_PYTHON, or write an interpreter path
+# into "$HERDR_PLUGIN_CONFIG_DIR/python".
+dir=$(dirname "$0")
+if [ -n "$HOP_PYTHON" ] && [ -x "$HOP_PYTHON" ]; then
+  exec "$HOP_PYTHON" "$dir/hop.py" "$@"
+fi
+if [ -n "$HERDR_PLUGIN_CONFIG_DIR" ] && [ -r "$HERDR_PLUGIN_CONFIG_DIR/python" ]; then
+  py=$(head -n 1 "$HERDR_PLUGIN_CONFIG_DIR/python")
+  [ -x "$py" ] && exec "$py" "$dir/hop.py" "$@"
+fi
+for py in /opt/homebrew/bin/python3 /usr/local/bin/python3 /usr/bin/python3; do
+  [ -x "$py" ] && exec "$py" "$dir/hop.py" "$@"
+done
+exec python3 "$dir/hop.py" "$@"
