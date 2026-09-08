@@ -162,7 +162,7 @@ fn flow(head: &str, items: &[String], width: usize) -> Vec<String> {
 /// into as many lines as `width` needs.
 pub fn hud_lines(m: &Model, typed: &str, width: usize) -> Vec<String> {
     let mut header =
-        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
+        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hjkl/HL/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }
@@ -473,7 +473,7 @@ pub fn render_lists(m: &Model, width: usize, typed: &str) -> Vec<String> {
 
 pub fn render_list_frame(m: &Model, typed: &str, cols: usize, rows: usize) -> Vec<String> {
     let mut header =
-        format!("{TITLE}{BOLD} easyjump {RESET}{DIM}type a hint · hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
+        format!("{TITLE}{BOLD} easyjump {RESET}{DIM}type a hint · hjkl/HL/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }

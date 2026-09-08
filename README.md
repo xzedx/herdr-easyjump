@@ -115,9 +115,10 @@ Press `prefix+f`.
   guess for debugging).
 - With two-letter labels, typing the first letter hides every label that no
   longer matches, in the sidebar and in the HUD.
-- `h` `j` `k` `l` move focus to the neighbouring pane, `J` / `K` switch to
-  the next / previous space, all without closing the popup. Labels and the
-  HUD follow the new focus, so you can mix relative moves and label jumps.
+- `h` `j` `k` `l` move focus to the neighbouring pane, `H` / `L` switch to
+  the previous / next tab, `J` / `K` to the next / previous space, all
+  without closing the popup. Labels and the HUD follow the new focus, so you
+  can mix relative moves and label jumps.
 - `` ` `` (backtick) jumps back to where you were when the popup opened,
   even after a chain of relative moves.
 - `Enter` keeps the current focus and closes (after relative moves this is

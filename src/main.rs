@@ -120,7 +120,7 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
                 }
             }
             Key::Char('`') | Key::Char('\'') => return Outcome::Back,
-            // Relative movement, Vim style: panes with hjkl, spaces with J/K.
+            // Relative movement, Vim style: panes with hjkl, tabs with H/L, spaces with J/K.
             Key::Char(c @ ('h' | 'j' | 'k' | 'l')) => {
                 let dir = match c {
                     'h' => "left",
@@ -135,6 +135,14 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
                 let step = if c == 'J' { 1 } else { -1 };
                 if let Some(ws) = model.neighbour_workspace(step) {
                     let _ = client.call("workspace.focus", json!({ "workspace_id": ws }));
+                    reload(model, client, mode, &typed);
+                }
+            }
+            // Tabs of the current workspace with H/L.
+            Key::Char(c @ ('H' | 'L')) => {
+                let step = if c == 'L' { 1 } else { -1 };
+                if let Some(tab) = model.neighbour_tab(step) {
+                    let _ = client.call("tab.focus", json!({ "tab_id": tab }));
                     reload(model, client, mode, &typed);
                 }
             }

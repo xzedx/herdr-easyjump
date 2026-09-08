@@ -437,6 +437,21 @@ impl Model {
         Some(self.ws_rows[j].0.workspace_id.clone())
     }
 
+    /// Tab before/after the current one in the current workspace, wrapping.
+    pub fn neighbour_tab(&self, step: i64) -> Option<String> {
+        let n = self.current_ws_tabs.len() as i64;
+        if n < 2 {
+            return None;
+        }
+        let i = self
+            .current_ws_tabs
+            .iter()
+            .position(|t| Some(&t.tab_id) == self.current_tab.as_ref())
+            .unwrap_or(0) as i64;
+        let j = (i + step).rem_euclid(n) as usize;
+        Some(self.current_ws_tabs[j].tab_id.clone())
+    }
+
     pub fn label(&self, kind: Kind, id: &str) -> &str {
         self.label_index
             .get(&(kind, id.to_string()))
