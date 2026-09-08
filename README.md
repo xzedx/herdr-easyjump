@@ -33,12 +33,9 @@ beyond that. The alphabet is home-row first (`asdfghjkl`, `wertyuiop`,
 ## Requirements
 
 - Herdr 0.8.2 or newer (plugin popup placement, metadata tokens)
-- Python 3.8+, standard library only, no build step. The `hop` launcher
-  prefers `/opt/homebrew/bin/python3`, `/usr/local/bin/python3`, then
-  `/usr/bin/python3`, and only then `python3` from `PATH`, because pyenv,
-  asdf, and mise shims add about 100 ms to every start. Override with
-  `HOP_PYTHON=/path/to/python3` or by writing the path into
-  `$(herdr plugin config-dir zed.hop)/python`.
+- A Rust toolchain (`cargo`); `herdr plugin install` runs
+  `cargo build --release`. Four small dependencies: serde, serde_json, libc,
+  unicode-width. No TUI framework.
 - The expanded desktop sidebar (collapsed and mobile sidebars do not render
   custom tokens)
 
@@ -51,6 +48,7 @@ herdr plugin install <owner>/herdr-hop
 or, for a local checkout:
 
 ```bash
+cargo build --release
 herdr plugin link /path/to/herdr-hop
 ```
 
@@ -67,13 +65,13 @@ type = "plugin_action"
 command = "zed.hop.open"
 description = "hop: hint jump"
 
-# Faster alternative to the binding above (about 60 ms to first frame instead
-# of about 200 ms): let Herdr open the popup directly. Use the absolute path
+# Faster alternative to the binding above (about 20 ms to first frame instead
+# of about 150 ms): let Herdr open the popup directly. Use the absolute path
 # of the checkout, or the managed one from `herdr plugin list`.
 # [[keys.command]]
 # key = "prefix+f"
 # type = "popup"
-# command = "/path/to/herdr-hop/hop"
+# command = "/path/to/herdr-hop/target/release/herdr-hop"
 # width = 64
 # height = 5
 # description = "hop: hint jump"
@@ -136,15 +134,21 @@ Press `prefix+f`.
 ## Development
 
 ```bash
+cargo build --release
 herdr plugin link "$PWD"
-python3 hop.py --dump --sidebar               # HUD text + label map
-COLUMNS=140 LINES=30 python3 hop.py --dump    # list-mode frame
+./target/release/herdr-hop --dump --sidebar               # HUD text + label map
+COLUMNS=140 LINES=30 ./target/release/herdr-hop --dump    # list-mode frame
 herdr plugin action invoke zed.hop.open
-HOP_TRACE=/tmp/hop-trace.txt ./hop          # per-stage timestamps
+HOP_TRACE=/tmp/hop-trace.txt ./target/release/herdr-hop  # per-stage timestamps
 ```
 
-Latency on an M-series Mac: popup process starts about 45-70 ms after the
-request and draws its first frame about 10 ms later.
+Latency on an M-series Mac, measured from the `plugin.pane.open` request:
+the popup process starts after about 10-15 ms and has drawn its first frame
+and published every sidebar label after about 15-25 ms. The binary itself
+starts in about 3 ms; the rest is Herdr spawning the popup.
+
+The first version was Python (see git history). It worked the same way but
+needed 60-80 ms, most of it interpreter start-up.
 
 ## License
 

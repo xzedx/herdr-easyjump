@@ -1,0 +1,18 @@
+[package]
+name = "herdr-hop"
+version = "0.4.0"
+edition = "2021"
+description = "Vimium-style hint labels in the Herdr sidebar to jump to any space, agent, pane, or tab"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+libc = "0.2"
+unicode-width = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true

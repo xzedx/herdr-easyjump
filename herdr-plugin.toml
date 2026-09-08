@@ -1,13 +1,16 @@
 id = "zed.hop"
 name = "Hop"
-version = "0.3.0"
+version = "0.4.0"
 min_herdr_version = "0.8.2"
 description = "Vimium-style hint labels, shown right in the Herdr sidebar, to jump to any space, agent, pane, or tab. No extra window, never steals terminal focus."
 platforms = ["linux", "macos"]
 
+[[build]]
+command = ["cargo", "build", "--release"]
+
 # Sidebar mode: labels appear next to every space and agent row in the sidebar,
 # a tiny HUD popup captures the key. The action only asks Herdr to open the
-# popup, so no interpreter starts before the popup itself.
+# popup, so nothing runs before the popup process itself.
 [[actions]]
 id = "open"
 title = "Hop: hint jump (sidebar)"
@@ -25,7 +28,7 @@ command = ["sh", "-c", "exec \"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plu
 id = "back"
 title = "Hop: jump back to previous pane"
 contexts = ["workspace", "global"]
-command = ["./hop", "--back"]
+command = ["./target/release/herdr-hop", "--back"]
 
 [[panes]]
 id = "hop"
@@ -33,7 +36,7 @@ title = "Hop"
 placement = "popup"
 width = 64
 height = 5
-command = ["./hop"]
+command = ["./target/release/herdr-hop"]
 
 [[panes]]
 id = "list"
@@ -41,4 +44,4 @@ title = "Hop list"
 placement = "popup"
 width = "80%"
 height = "70%"
-command = ["./hop", "--list"]
+command = ["./target/release/herdr-hop", "--list"]
