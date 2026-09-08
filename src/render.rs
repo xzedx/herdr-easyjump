@@ -132,7 +132,7 @@ pub fn render_hint(label: &str, typed: &str) -> String {
 /// Sidebar-mode HUD: header plus whatever the sidebar cannot show.
 pub fn hud_lines(m: &Model, typed: &str) -> Vec<String> {
     let mut header =
-        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hints in sidebar · hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
+        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }
