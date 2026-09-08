@@ -12,19 +12,7 @@ is a Herdr terminal popup. There is no separate window, so the outer terminal
 (Ghostty, iTerm2, WezTerm, Kitty, …) never loses focus, and it works over
 `herdr --remote` / SSH.
 
-```
- sidebar                          │  HUD popup (centered over the panes)
- ─────────────────────────────    │  ┌──────────────────────────────────────────┐
- ● [a] herdr                      │  │ easyjump  hints in the sidebar · ` back  │
-   ● [s] herdr 1                  │  │ panes [y] ● claude  [u] shell            │
-     claude                       │  │ tabs  [i] 1  [o] 2                       │
- ○ [d] liberbot                   │  └──────────────────────────────────────────┘
-   ○ [f] liberbot 1
-     claude
-   ○ [g] liberbot 2
-     codex
- · [h] study
-```
+![herdr-easyjump: yellow hint labels next to every space and agent row in the Herdr sidebar, plus a small HUD popup](docs/screenshot.png)
 
 Labels are single letters while there are 25 or fewer targets, two letters
 beyond that. The alphabet is home-row first (`asdfghjkl`, `wertyuiop`,
