@@ -132,7 +132,7 @@ pub fn render_hint(label: &str, typed: &str) -> String {
 /// Sidebar-mode HUD: header plus whatever the sidebar cannot show.
 pub fn hud_lines(m: &Model, typed: &str) -> Vec<String> {
     let mut header =
-        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hints in the sidebar · hjkl move · J/K space · ` back · esc{RESET}");
+        format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hints in sidebar · hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }
@@ -394,7 +394,7 @@ pub fn render_lists(m: &Model, width: usize, typed: &str) -> Vec<String> {
 
 pub fn render_list_frame(m: &Model, typed: &str, cols: usize, rows: usize) -> Vec<String> {
     let mut header =
-        format!("{TITLE}{BOLD} easyjump {RESET}{DIM}type a hint · hjkl move · J/K space · ` back · q/esc{RESET}");
+        format!("{TITLE}{BOLD} easyjump {RESET}{DIM}type a hint · hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }

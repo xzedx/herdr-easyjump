@@ -60,6 +60,11 @@ fn reload(model: &mut Model, client: &mut Client, mode: Mode, typed: &str) {
 enum Outcome {
     Jump(model::Dest),
     Back,
+    /// Enter: keep whatever focus the relative moves produced.
+    Confirm,
+    /// Esc / q: undo relative moves, back to where the popup opened.
+    Cancel,
+    /// Herdr closed the popup from outside; keep the focus as it is.
     Quit,
 }
 
@@ -102,7 +107,7 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
                 }
                 return Outcome::Quit;
             }
-            Key::Esc | Key::CtrlC | Key::Char('q') => return Outcome::Quit,
+            Key::Esc | Key::CtrlC | Key::Char('q') => return Outcome::Cancel,
             Key::Seq => {}
             Key::Backspace => {
                 typed.pop();
@@ -131,11 +136,12 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
             }
             Key::Enter => {
                 let matches = model.labels_with_prefix(&typed);
-                if matches.len() == 1 {
+                if !typed.is_empty() && matches.len() == 1 {
                     if let Some(d) = model.dest_for(matches[0]) {
                         return Outcome::Jump(d.clone());
                     }
                 }
+                return Outcome::Confirm;
             }
             Key::Char(c) if ALPHABET.contains(c.to_ascii_lowercase()) => {
                 typed.push(c.to_ascii_lowercase());
@@ -197,11 +203,13 @@ fn run_popup(mode: Mode) -> Result<(), String> {
     term::leave_alt_screen();
 
     // "Previous" always means where we were when the popup opened, even
-    // after a chain of relative moves. A jump-back must not overwrite it.
+    // after a chain of relative moves. A jump-back or a cancel must not
+    // overwrite it.
+    let moved = model.focused_pane != origin;
     let remember = match &outcome {
         Outcome::Jump(_) => true,
-        Outcome::Back => false,
-        Outcome::Quit => model.focused_pane != origin,
+        Outcome::Confirm | Outcome::Quit => moved,
+        Outcome::Back | Outcome::Cancel => false,
     };
     if remember {
         state::remember_previous(origin.as_deref());
@@ -214,7 +222,13 @@ fn run_popup(mode: Mode) -> Result<(), String> {
             }
             _ => Ok(()),
         },
-        Outcome::Quit => Ok(()),
+        Outcome::Cancel => match origin {
+            Some(o) if moved && model.panes.contains_key(&o) => {
+                model.jump(&mut client, &(Kind::Pane, o))
+            }
+            _ => Ok(()),
+        },
+        Outcome::Confirm | Outcome::Quit => Ok(()),
     }
 }
 

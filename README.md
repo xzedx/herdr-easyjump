@@ -110,9 +110,11 @@ Press `prefix+f`.
   HUD follow the new focus, so you can mix relative moves and label jumps.
 - `` ` `` (backtick) jumps back to where you were when the popup opened,
   even after a chain of relative moves.
-- `Backspace` clears the typed prefix, `Enter` accepts a unique prefix.
-- `q`, `Esc`, or `Ctrl-C` closes; if relative moves changed the focus, the
-  origin is remembered for the next jump back.
+- `Enter` keeps the current focus and closes (after relative moves this is
+  the "confirm"). With a unique typed prefix it jumps there instead.
+- `Esc`, `q`, or `Ctrl-C` undoes: focus returns to where it was when the
+  popup opened, then the popup closes.
+- `Backspace` clears the typed prefix.
 
 ## How it works
 
