@@ -27,8 +27,8 @@ quitting, so they never appear in a label.
 - A Rust toolchain (`cargo`); `herdr plugin install` runs
   `cargo build --release`. Four small dependencies: serde, serde_json, libc,
   unicode-width. No TUI framework.
-- The expanded desktop sidebar (collapsed and mobile sidebars do not render
-  custom tokens)
+- Works with the sidebar expanded or collapsed. A collapsed sidebar cannot
+  render the labels, so the HUD then lists the spaces and agents itself.
 
 ## Install
 
@@ -56,15 +56,17 @@ type = "plugin_action"
 command = "xzedx.easyjump.open"
 description = "easyjump: hint jump"
 
-# Faster alternative to the binding above (about 20 ms to first frame instead
-# of about 150 ms): let Herdr open the popup directly. Use the absolute path
-# of the checkout, or the managed one from `herdr plugin list`.
+# Alternative: let Herdr open the popup directly, skipping the `--open` hop.
+# The size is fixed, so give it enough rows for the collapsed-sidebar HUD
+# (header, spaces, agents, panes, tabs; a big session may want 8 or more).
+# Use the absolute path of the checkout, or the managed one from
+# `herdr plugin list`.
 # [[keys.command]]
 # key = "prefix+f"
 # type = "popup"
 # command = "/path/to/herdr-easyjump/target/release/herdr-easyjump"
-# width = 64
-# height = 5
+# width = 96
+# height = 8
 # description = "easyjump: hint jump"
 
 # optional: jump back to where you were before the last hop
@@ -101,8 +103,16 @@ Press `prefix+f`.
 - Every space row and agent row in the sidebar shows `[x]`. Type `x` to jump
   there. A space label focuses that workspace's active tab; an agent label
   focuses that agent's pane, switching workspace and tab as needed.
-- The HUD lists panes of the current tab (when there is more than one) and
-  tabs of the current workspace (when there is more than one).
+- Panes of the current tab show `[x]` on their border (a display-only title
+  override with a TTL, so it vanishes on its own if the plugin dies). Tabs of
+  the current workspace show their hint in the tab bar: a custom-named tab
+  gets a `[x]` prefix while the popup is open, an auto-numbered tab keeps its
+  number and that digit is the key. The HUD repeats the pane and tab hints.
+- With the sidebar collapsed to its icon rail the labels have nowhere to go,
+  so the HUD also lists every space and agent, wrapped to the popup width.
+  Herdr does not report the sidebar state; the plugin infers it from where
+  the pane area starts (`EASYJUMP_SIDEBAR=collapsed|expanded` overrides the
+  guess for debugging).
 - With two-letter labels, typing the first letter hides every label that no
   longer matches, in the sidebar and in the HUD.
 - `h` `j` `k` `l` move focus to the neighbouring pane, `J` / `K` switch to

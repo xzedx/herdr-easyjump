@@ -3,11 +3,14 @@
 //! Two modes, both drawn inside Herdr's own terminal popup so the outer
 //! terminal never loses focus:
 //!
-//!   sidebar (default)  Hint labels appear in the sidebar itself, next to every
-//!                      space row and agent row, via Herdr's metadata tokens.
-//!                      A tiny HUD popup captures the key and lists the targets
-//!                      the sidebar does not show (panes of the current tab,
-//!                      tabs of the current workspace).
+//!   sidebar (default)  Hint labels appear where the eye already is: next to
+//!                      every space row and agent row in the sidebar (metadata
+//!                      tokens), on the border of every pane of the current tab
+//!                      (title override), and in the tab bar (a label prefix on
+//!                      custom-named tabs; auto-numbered tabs use their number).
+//!                      A tiny HUD popup captures the key and repeats the pane
+//!                      and tab hints. When the sidebar is collapsed the HUD
+//!                      lists the spaces and agents too.
 //!   list               One big popup with a pane mini-map and full lists.
 //!
 //! Usage:
@@ -78,7 +81,8 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
     }
     loop {
         if sidebar {
-            term::draw(&render::hud_lines(model, &typed));
+            let (cols, _) = term::size();
+            term::draw(&render::hud_lines(model, &typed, cols));
         } else {
             let (cols, rows) = term::size();
             term::draw(&render::render_list_frame(model, &typed, cols, rows));
@@ -143,7 +147,8 @@ fn interact(model: &mut Model, client: &mut Client, mode: Mode) -> Outcome {
                 }
                 return Outcome::Confirm;
             }
-            Key::Char(c) if ALPHABET.contains(c.to_ascii_lowercase()) => {
+            // Letters are labels; digits are the keys of auto-numbered tabs.
+            Key::Char(c) if ALPHABET.contains(c.to_ascii_lowercase()) || c.is_ascii_digit() => {
                 typed.push(c.to_ascii_lowercase());
                 if let Some(d) = model.dest_for(&typed) {
                     return Outcome::Jump(d.clone());
@@ -239,7 +244,18 @@ fn open_popup(mode: Mode) -> Result<(), String> {
     match mode {
         Mode::Sidebar => {
             let model = load_model(&mut client, Mode::Sidebar, Context::from_env())?;
-            let lines = render::hud_lines(&model, "");
+            // Fit the content, but stay inside the outer terminal when known.
+            let max_w = if model.screen_cols > 12 {
+                (model.screen_cols - 8).min(120)
+            } else {
+                120
+            };
+            let max_h = if model.screen_rows > 6 {
+                model.screen_rows - 4
+            } else {
+                usize::MAX
+            };
+            let lines = render::hud_lines(&model, "", max_w - 4);
             let width = lines
                 .iter()
                 .map(|l| render::visible_len(l))
@@ -247,8 +263,8 @@ fn open_popup(mode: Mode) -> Result<(), String> {
                 .unwrap_or(40)
                 + 4;
             params["entrypoint"] = json!("jump");
-            params["width"] = json!(width.min(120));
-            params["height"] = json!(lines.len() + 2);
+            params["width"] = json!(width.min(max_w));
+            params["height"] = json!((lines.len() + 2).min(max_h));
         }
         Mode::List => params["entrypoint"] = json!("list"),
     }
@@ -286,12 +302,19 @@ fn dump(args: &[String]) -> Result<(), String> {
     };
     let typed = std::env::var("EASYJUMP_TYPED").unwrap_or_default();
     let lines = match mode {
-        Mode::Sidebar => render::hud_lines(&model, &typed),
+        Mode::Sidebar => render::hud_lines(&model, &typed, env("COLUMNS", 100)),
         Mode::List => {
             render::render_list_frame(&model, &typed, env("COLUMNS", 160), env("LINES", 30))
         }
     };
     println!("{}{}", lines.join("\n"), render::RESET);
+    println!(
+        "sidebar: {} cols ({}), screen: {}x{}",
+        model.sidebar_cols,
+        if model.sidebar_collapsed() { "collapsed" } else { "expanded" },
+        model.screen_cols,
+        model.screen_rows
+    );
     let map: Vec<String> = model
         .labels
         .iter()

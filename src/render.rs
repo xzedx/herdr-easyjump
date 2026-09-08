@@ -129,14 +129,93 @@ pub fn render_hint(label: &str, typed: &str) -> String {
     format!("{HINT}[{label}]{RESET}")
 }
 
-/// Sidebar-mode HUD: header plus whatever the sidebar cannot show.
-pub fn hud_lines(m: &Model, typed: &str) -> Vec<String> {
+/// Lay `items` out after `head`, two spaces apart, wrapping at `width`.
+/// Continuation lines are indented to the first item.
+fn flow(head: &str, items: &[String], width: usize) -> Vec<String> {
+    let indent = " ".repeat(visible_len(head) + 1);
+    let mut lines = Vec::new();
+    let mut cur = format!("{head} ");
+    let mut cur_w = visible_len(&cur);
+    let mut empty = true;
+    for item in items {
+        let w = visible_len(item);
+        if !empty && cur_w + 2 + w > width {
+            lines.push(cur);
+            cur = indent.clone();
+            cur_w = indent.len();
+            empty = true;
+        }
+        if !empty {
+            cur.push_str("  ");
+            cur_w += 2;
+        }
+        cur.push_str(item);
+        cur_w += w;
+        empty = false;
+    }
+    lines.push(cur);
+    lines
+}
+
+/// Sidebar-mode HUD: header plus whatever the sidebar cannot show. With the
+/// sidebar collapsed that includes the spaces and agents themselves, flowed
+/// into as many lines as `width` needs.
+pub fn hud_lines(m: &Model, typed: &str, width: usize) -> Vec<String> {
     let mut header =
         format!("{TITLE}{BOLD}easyjump{RESET} {DIM}hjkl/JK move · ⏎ keep · esc undo · ` back{RESET}");
     if !typed.is_empty() {
         header.push_str(&format!("  {HINT_TYPED} {typed} {RESET}"));
     }
     let mut lines = vec![header];
+    if m.sidebar_collapsed() {
+        let spaces: Vec<String> = m
+            .ws_rows
+            .iter()
+            .map(|(ws, _)| {
+                let cur = if Some(&ws.workspace_id) == m.current_ws.as_ref() {
+                    BOLD
+                } else {
+                    ""
+                };
+                format!(
+                    "{} {cur}{}{RESET}",
+                    render_hint(m.label(Kind::Workspace, &ws.workspace_id), typed),
+                    truncate(&ws.label, 14)
+                )
+            })
+            .collect();
+        if !spaces.is_empty() {
+            lines.extend(flow(&format!("{DIM}spaces{RESET}"), &spaces, width));
+        }
+        let agents: Vec<String> = m
+            .ws_agents
+            .iter()
+            .flat_map(|(ws_id, ids)| ids.iter().map(move |id| (ws_id, id)))
+            .map(|(ws_id, id)| {
+                let (name, _) = m.pane_summary(id);
+                let ws = m
+                    .workspaces
+                    .get(ws_id)
+                    .map(|w| w.label.as_str())
+                    .unwrap_or("");
+                let cur = if Some(id) == m.focused_pane.as_ref() {
+                    BOLD
+                } else {
+                    ""
+                };
+                format!(
+                    "{} {cur}{} {}{RESET}{DIM}·{}{RESET}",
+                    render_hint(m.label(Kind::Pane, id), typed),
+                    status_icon(m.agent_status(id)),
+                    truncate(&name, 10),
+                    truncate(ws, 10)
+                )
+            })
+            .collect();
+        if !agents.is_empty() {
+            lines.extend(flow(&format!("{DIM}agents{RESET}"), &agents, width));
+        }
+    }
     if m.tab_panes.len() > 1 {
         let parts: Vec<String> = m
             .tab_panes
